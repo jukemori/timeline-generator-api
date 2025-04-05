@@ -1,0 +1,34 @@
+type TimelineTask {
+  id: ID!
+  title: String!
+  description: String!
+  startDate: String!
+  endDate: String!
+  duration: String!
+  priority: Int!
+}
+
+type Timeline {
+  id: ID!
+  title: String!
+  description: String!
+  startDate: String!
+  endDate: String!
+  tasks: [TimelineTask!]!
+}
+
+input TimelineInput {
+  currentLevel: String!
+  goal: String!
+  objectives: String!
+  currentDate: String!
+  targetDate: String
+}
+
+type Query {
+  timeline(id: ID!): Timeline
+}
+
+type Mutation {
+  generateTimeline(input: TimelineInput!): Timeline!
+}

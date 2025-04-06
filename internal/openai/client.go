@@ -81,10 +81,10 @@ Format your response as a JSON object with the following structure:
 	}
 
 	content := resp.Choices[0].Message.Content
-	
+
 	// Extract JSON from the response
 	content = extractJSON(content)
-	
+
 	var timelineData struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -132,7 +132,7 @@ func extractJSON(content string) string {
 	// Find the start and end of JSON content
 	start := strings.Index(content, "{")
 	end := strings.LastIndex(content, "}")
-	
+
 	if start >= 0 && end >= 0 && end > start {
 		return content[start : end+1]
 	}

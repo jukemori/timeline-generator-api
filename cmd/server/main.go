@@ -9,12 +9,16 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/jukemori/timeline-generator/graph/generated"
 	"github.com/jukemori/timeline-generator/graph/resolver"
+	"github.com/jukemori/timeline-generator/internal/database"
 	"github.com/jukemori/timeline-generator/internal/openai"
 )
 
 const defaultPort = "8080"
 
 func main() {
+	// Initialize the database connection
+	database.InitDB()
+	
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort

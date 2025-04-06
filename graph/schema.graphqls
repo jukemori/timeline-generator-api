@@ -27,6 +27,8 @@ input TimelineInput {
 
 type Query {
   timeline(id: ID!): Timeline
+  timelines(goalId: ID!): [Timeline!]!
+  userTimelines(userId: ID!): [Timeline!]!
 }
 
 type Mutation {

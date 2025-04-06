@@ -51,7 +51,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Timeline func(childComplexity int, id string) int
+		Timeline      func(childComplexity int, id string) int
+		Timelines     func(childComplexity int, goalID string) int
+		UserTimelines func(childComplexity int, userID string) int
 	}
 
 	Timeline struct {
@@ -79,6 +81,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Timeline(ctx context.Context, id string) (*model.Timeline, error)
+	Timelines(ctx context.Context, goalID string) ([]*model.Timeline, error)
+	UserTimelines(ctx context.Context, userID string) ([]*model.Timeline, error)
 }
 
 type executableSchema struct {
@@ -123,6 +127,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Timeline(childComplexity, args["id"].(string)), true
+
+	case "Query.timelines":
+		if e.complexity.Query.Timelines == nil {
+			break
+		}
+
+		args, err := ec.field_Query_timelines_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Timelines(childComplexity, args["goalId"].(string)), true
+
+	case "Query.userTimelines":
+		if e.complexity.Query.UserTimelines == nil {
+			break
+		}
+
+		args, err := ec.field_Query_userTimelines_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserTimelines(childComplexity, args["userId"].(string)), true
 
 	case "Timeline.description":
 		if e.complexity.Timeline.Description == nil {
@@ -350,6 +378,8 @@ input TimelineInput {
 
 type Query {
   timeline(id: ID!): Timeline
+  timelines(goalId: ID!): [Timeline!]!
+  userTimelines(userId: ID!): [Timeline!]!
 }
 
 type Mutation {
@@ -439,6 +469,62 @@ func (ec *executionContext) field_Query_timeline_argsID(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_timelines_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_timelines_argsGoalID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["goalId"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_timelines_argsGoalID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	if _, ok := rawArgs["goalId"]; !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("goalId"))
+	if tmp, ok := rawArgs["goalId"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_userTimelines_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_userTimelines_argsUserID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_userTimelines_argsUserID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	if _, ok := rawArgs["userId"]; !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+	if tmp, ok := rawArgs["userId"]; ok {
 		return ec.unmarshalNID2string(ctx, tmp)
 	}
 
@@ -695,6 +781,144 @@ func (ec *executionContext) fieldContext_Query_timeline(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_timeline_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_timelines(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_timelines(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Timelines(rctx, fc.Args["goalId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Timeline)
+	fc.Result = res
+	return ec.marshalNTimeline2ᚕᚖgithubᚗcomᚋjukemoriᚋtimelineᚑgeneratorᚋgraphᚋmodelᚐTimelineᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_timelines(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Timeline_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Timeline_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Timeline_description(ctx, field)
+			case "startDate":
+				return ec.fieldContext_Timeline_startDate(ctx, field)
+			case "endDate":
+				return ec.fieldContext_Timeline_endDate(ctx, field)
+			case "tasks":
+				return ec.fieldContext_Timeline_tasks(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Timeline", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_timelines_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_userTimelines(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_userTimelines(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserTimelines(rctx, fc.Args["userId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Timeline)
+	fc.Result = res
+	return ec.marshalNTimeline2ᚕᚖgithubᚗcomᚋjukemoriᚋtimelineᚑgeneratorᚋgraphᚋmodelᚐTimelineᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_userTimelines(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Timeline_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Timeline_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Timeline_description(ctx, field)
+			case "startDate":
+				return ec.fieldContext_Timeline_startDate(ctx, field)
+			case "endDate":
+				return ec.fieldContext_Timeline_endDate(ctx, field)
+			case "tasks":
+				return ec.fieldContext_Timeline_tasks(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Timeline", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_userTimelines_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3521,6 +3745,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "timelines":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_timelines(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "userTimelines":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userTimelines(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -4082,6 +4350,50 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 
 func (ec *executionContext) marshalNTimeline2githubᚗcomᚋjukemoriᚋtimelineᚑgeneratorᚋgraphᚋmodelᚐTimeline(ctx context.Context, sel ast.SelectionSet, v model.Timeline) graphql.Marshaler {
 	return ec._Timeline(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTimeline2ᚕᚖgithubᚗcomᚋjukemoriᚋtimelineᚑgeneratorᚋgraphᚋmodelᚐTimelineᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Timeline) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTimeline2ᚖgithubᚗcomᚋjukemoriᚋtimelineᚑgeneratorᚋgraphᚋmodelᚐTimeline(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNTimeline2ᚖgithubᚗcomᚋjukemoriᚋtimelineᚑgeneratorᚋgraphᚋmodelᚐTimeline(ctx context.Context, sel ast.SelectionSet, v *model.Timeline) graphql.Marshaler {

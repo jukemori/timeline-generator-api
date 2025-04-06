@@ -9,6 +9,7 @@ import (
 
 	"github.com/jukemori/timeline-generator/graph/generated"
 	"github.com/jukemori/timeline-generator/graph/model"
+	"github.com/jukemori/timeline-generator/internal/repository"
 )
 
 // GenerateTimeline is the resolver for the generateTimeline field.
@@ -18,8 +19,57 @@ func (r *mutationResolver) GenerateTimeline(ctx context.Context, input model.Tim
 
 // Timeline is the resolver for the timeline field.
 func (r *queryResolver) Timeline(ctx context.Context, id string) (*model.Timeline, error) {
-	// In a real app, you would fetch the timeline from a database
-	return nil, nil
+	timelineRepo := repository.NewTimelineRepository()
+	timeline, err := timelineRepo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return convertTimelineToGraphQL(timeline), nil
+}
+
+// Timelines is the resolver for the timelines field.
+func (r *queryResolver) Timelines(ctx context.Context, goalID string) ([]*model.Timeline, error) {
+	timelineRepo := repository.NewTimelineRepository()
+	timelines, err := timelineRepo.GetByGoalID(goalID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.Timeline, len(timelines))
+	for i, timeline := range timelines {
+		result[i] = convertTimelineToGraphQL(timeline)
+	}
+
+	return result, nil
+}
+
+// UserTimelines is the resolver for the userTimelines field.
+func (r *queryResolver) UserTimelines(ctx context.Context, userID string) ([]*model.Timeline, error) {
+	goalRepo := repository.NewGoalRepository()
+	timelineRepo := repository.NewTimelineRepository()
+
+	// Get all goals for the user
+	goals, err := goalRepo.GetByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get timelines for each goal
+	var result []*model.Timeline
+	for _, goal := range goals {
+		timelines, err := timelineRepo.GetByGoalID(goal.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert and add to result
+		for _, timeline := range timelines {
+			result = append(result, convertTimelineToGraphQL(timeline))
+		}
+	}
+
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

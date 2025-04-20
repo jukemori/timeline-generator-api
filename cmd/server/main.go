@@ -47,8 +47,8 @@ func main() {
 	mux := http.NewServeMux()
 	
 	// Add the handlers with CORS middleware
-	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	mux.Handle("/query", corsHandler.Handler(srv))
+	mux.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
+	mux.Handle("/graphql", corsHandler.Handler(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
